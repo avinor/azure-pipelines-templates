@@ -4,7 +4,7 @@ parameters:
 steps:
 - script: |
     curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
-    unzip -o "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin
+    sudo unzip -o "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin
     rm -f "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
   env:
     TERRAFORM_VERSION: ${{ parameters.terraformVersion }}
