@@ -1,10 +1,14 @@
 # Validates module templates
 
+parameters:
+  terraformVersion: '0.12.0-rc1'
+
 jobs:
 - job: Validate
   pool:
     vmImage: "ubuntu 16.04"
   steps:
+  - template: steps/terraform-install.yaml
   - script: |
       for EXAMPLE in examples/*
       do
