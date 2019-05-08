@@ -18,3 +18,4 @@ jobs:
           echo "Validating module ${NAME}"
           terraform validate
       done
+    displayName: Validate examples
