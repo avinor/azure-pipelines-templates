@@ -1,0 +1,19 @@
+# Validates module templates
+
+jobs:
+- job: Validate
+  pool:
+    vmImage: "ubuntu 16.04"
+  steps:
+  - script: |
+      for EXAMPLE in examples/*
+      do
+          NAME=$(basename "${EXAMPLE}")
+          cd ${EXAMPLE}
+          
+          echo "Initialize module ${NAME}"
+          terraform init -backend=false
+
+          echo "Validating module ${NAME}"
+          terraform validate
+      done
