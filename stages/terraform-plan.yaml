@@ -5,9 +5,9 @@ stages:
 - stage: Plan
   jobs:
   - ${{ each job in parameters.jobs }}:
-    template: ../jobs/terraform-plan.yaml
-    parameters:
-      name: ${{ job.name }}
-      displayName: ${{ job.displayName }}
-      azureSubscription: ${{ job.azureSubscription }}
-      environment: ${{ job.environment }}
+    - template: ../jobs/terraform-plan.yaml
+      parameters:
+        name: ${{ job.name }}
+        displayName: ${{ job.displayName }}
+        azureSubscription: ${{ job.azureSubscription }}
+        environment: ${{ job.environment }}
