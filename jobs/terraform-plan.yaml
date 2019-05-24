@@ -22,9 +22,9 @@ jobs:
   - task: AzureCLI@1
     displayName: 'Run Terragrunt Plan'
     inputs:
-    azureSubscription: ${{ parameters.azureSubscription }}
-    scriptLocation: inlineScript
-    inlineScript: |
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptLocation: inlineScript
+      inlineScript: |
         export ARM_CLIENT_ID=$servicePrincipalId
         export ARM_CLIENT_SECRET=$servicePrincipalKey
         export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
@@ -32,5 +32,5 @@ jobs:
         cd $(Agent.BuildDirectory)/${{ parameters.name }}/environments/${{ parameters.environment }}
         . ../../scripts/setAccessKeys.sh ${{ parameters.environment }}
         terragrunt plan-all -input=false
-    addSpnToEnvironment: true
-    useGlobalConfig: true
+      addSpnToEnvironment: true
+      useGlobalConfig: true
