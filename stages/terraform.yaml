@@ -48,27 +48,26 @@ stages:
         runOnce:
           deploy:
             steps:
-            - script: echo "TEST"
-            # - checkout: self
-            #   clean: false
-            #   fetchDepth: 5
-            #   lfs: true
-            #   path: ${{ location }}
+            - checkout: self
+              clean: false
+              fetchDepth: 5
+              lfs: true
+              path: ${{ location }}
             # - template: ../steps/terraform-install.yaml
             # - template: ../steps/terragrunt-install.yaml
-            # - task: AzureCLI@1
-            #   displayName: 'Run Terragrunt Apply'
-            #   inputs:
-            #     azureSubscription: ${{ parameters.azureSubscription }}
-            #     scriptLocation: inlineScript
-            #     inlineScript: |
-            #       export ARM_CLIENT_ID=$servicePrincipalId
-            #       export ARM_CLIENT_SECRET=$servicePrincipalKey
-            #       export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
-            #       export LOCATION="${{ location }}"
+            - task: AzureCLI@1
+              displayName: 'Run Terragrunt Apply'
+              inputs:
+                azureSubscription: ${{ parameters.azureSubscription }}
+                scriptLocation: inlineScript
+                inlineScript: |
+                  export ARM_CLIENT_ID=$servicePrincipalId
+                  export ARM_CLIENT_SECRET=$servicePrincipalKey
+                  export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
+                  export LOCATION="${{ location }}"
                   
-            #       cd $(Agent.BuildDirectory)/${{ location }}/environments/${{ parameters.environment }}/$(echo ${LOCATION,,})
-            #       . ../../../scripts/setAccessKeys.sh ${{ parameters.environment }}
-            #       terragrunt apply-all -input=false --terragrunt-non-interactive
-            #     addSpnToEnvironment: true
-            #     useGlobalConfig: true
+                  cd $(Agent.BuildDirectory)/${{ location }}/environments/${{ parameters.environment }}/$(echo ${LOCATION,,})
+                  . ../../../scripts/setAccessKeys.sh ${{ parameters.environment }}
+                  terragrunt apply-all -input=false --terragrunt-non-interactive
+                addSpnToEnvironment: true
+                useGlobalConfig: true
