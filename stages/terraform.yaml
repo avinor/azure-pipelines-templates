@@ -1,3 +1,14 @@
+# Plan and apply terraform resources
+# Currently uses terragrunt for deployment, will probably change later
+#
+# 
+#
+# Azure Hosted Agent did not have terraform 0.12 at the time of creation and therefore
+# installing terraform 0.12
+#
+# Nb. Due to a bug it could not use the install terragrunt and terraform step templates
+#     and had to include those in deployment steps directly. Maybe will be fixed later
+
 parameters:
   azureSubscription: ''
   environment: ''
@@ -8,9 +19,9 @@ parameters:
 stages:
 - stage: Plan
   jobs:
-  - ${{ each location in parameters.locations }}:
-    - job: ${{ location }}
-      displayName: ${{ location }}
+  - ${{ each path in parameters.paths }}:
+    - job: ${{ path.name }}
+      displayName: ${{ path.displayName }}
       pool:
         vmImage: 'ubuntu-16.04'
       steps:
@@ -18,9 +29,13 @@ stages:
         clean: false
         fetchDepth: 5
         lfs: true
-        path: ${{ location }}
+        path: ${{ path.name }}
       - template: ../steps/terraform-install.yaml
+        parameters:
+          terraformVersion: ${{ parameters.terraformVersion }}
       - template: ../steps/terragrunt-install.yaml
+        parameters:
+          terragruntVersion: ${{ parameters.terragruntVersion }}
       - task: AzureCLI@1
         displayName: 'Run Terragrunt Plan'
         inputs:
@@ -30,18 +45,17 @@ stages:
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
-            export LOCATION="${{ location }}"
             
-            cd $(Agent.BuildDirectory)/${{ location }}/environments/${{ parameters.environment }}/$(echo ${LOCATION,,})
-            . ../../../scripts/setAccessKeys.sh ${{ parameters.environment }}
+            cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
+            #. $(Agent.BuildDirectory)/${{ location }}/scripts/setAccessKeys.sh ${{ parameters.environment }}
             terragrunt plan-all -input=false
           addSpnToEnvironment: true
           useGlobalConfig: true
 - stage: Apply
   jobs:
   - ${{ each location in parameters.locations }}:
-    - deployment: ${{ location }}
-      displayName: ${{ location }}
+    - deployment: ${{ path.name }}
+      displayName: ${{ path.displayName }}
       pool:
         vmImage: 'ubuntu-16.04'
       environment: ${{ parameters.environment }}
@@ -54,7 +68,7 @@ stages:
               clean: false
               fetchDepth: 5
               lfs: true
-              path: ${{ location }}
+              path: ${{ path.name }}
             # Should be like this... but just fails.
             # - template: ../steps/terraform-install.yaml
             # - template: ../steps/terragrunt-install.yaml
@@ -81,10 +95,9 @@ stages:
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
                   export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
-                  export LOCATION="${{ location }}"
                   
-                  cd $(Agent.BuildDirectory)/${{ location }}/environments/${{ parameters.environment }}/$(echo ${LOCATION,,})
-                  . ../../../scripts/setAccessKeys.sh ${{ parameters.environment }}
+                  cd $(Agent.BuildDirectory)/${{ location }}/${{ path.path }}
+                  #. $(Agent.BuildDirectory)/${{ location }}/scripts/setAccessKeys.sh ${{ parameters.environment }}
                   terragrunt apply-all -input=false --terragrunt-non-interactive
                 addSpnToEnvironment: true
                 useGlobalConfig: true
