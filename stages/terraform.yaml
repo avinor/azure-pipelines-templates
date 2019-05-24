@@ -1,70 +1,70 @@
 parameters:
-  name: ''
-  displayName: ''
   azureSubscription: ''
   environment: ''
+  locations: []
 
 stages:
 - stage: Plan
   jobs:
-  - job: ${{ parameters.name }}
-    displayName: ${{ parameters.displayName }}
-    pool:
-      vmImage: 'ubuntu-16.04'
-    steps:
-    - checkout: self
-      clean: false
-      fetchDepth: 5
-      lfs: true
-      path: ${{ parameters.name }}
-    - template: ../steps/terraform-install.yaml
-    - template: ../steps/terragrunt-install.yaml
-    - task: AzureCLI@1
-      displayName: 'Run Terragrunt Plan'
-      inputs:
-        azureSubscription: ${{ parameters.azureSubscription }}
-        scriptLocation: inlineScript
-        inlineScript: |
-          export ARM_CLIENT_ID=$servicePrincipalId
-          export ARM_CLIENT_SECRET=$servicePrincipalKey
-          export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
-          
-          cd $(Agent.BuildDirectory)/${{ parameters.name }}/environments/${{ parameters.environment }}
-          . ../../scripts/setAccessKeys.sh ${{ parameters.environment }}
-          terragrunt plan-all -input=false
-        addSpnToEnvironment: true
-        useGlobalConfig: true
-- stage: Apply
-  jobs:
-  - deployment: ${{ parameters.name }}
-    displayName: ${{ parameters.displayName }}
-    pool:
-      vmImage: 'ubuntu-16.04'
-    environment: ${{ parameters.environment }}
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - checkout: self
-            clean: false
-            fetchDepth: 5
-            lfs: true
-            path: ${{ parameters.name }}
-          - template: ../steps/terraform-install.yaml
-          - template: ../steps/terragrunt-install.yaml
-          - task: AzureCLI@1
-            displayName: 'Run Terragrunt Apply'
-            inputs:
-              azureSubscription: ${{ parameters.azureSubscription }}
-              scriptLocation: inlineScript
-              inlineScript: |
-                export ARM_CLIENT_ID=$servicePrincipalId
-                export ARM_CLIENT_SECRET=$servicePrincipalKey
-                export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
+  - ${{ each location in parameters.locations }}:
+    - job: ${{ location }}
+      displayName: ${{ location }}
+      pool:
+        vmImage: 'ubuntu-16.04'
+      steps:
+      - checkout: self
+        clean: false
+        fetchDepth: 5
+        lfs: true
+        path: ${{ location }}
+      - template: ../steps/terraform-install.yaml
+      - template: ../steps/terragrunt-install.yaml
+      - task: AzureCLI@1
+        displayName: 'Run Terragrunt Plan'
+        inputs:
+          azureSubscription: ${{ parameters.azureSubscription }}
+          scriptLocation: inlineScript
+          inlineScript: |
+            export ARM_CLIENT_ID=$servicePrincipalId
+            export ARM_CLIENT_SECRET=$servicePrincipalKey
+            export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
+            
+            cd $(Agent.BuildDirectory)/${{ location }}/environments/${{ parameters.environment }}
+            . ../../scripts/setAccessKeys.sh ${{ parameters.environment }}
+            terragrunt plan-all -input=false
+          addSpnToEnvironment: true
+          useGlobalConfig: true
+# - stage: Apply
+#   jobs:
+#   - deployment: ${{ parameters.name }}
+#     displayName: ${{ parameters.displayName }}
+#     pool:
+#       vmImage: 'ubuntu-16.04'
+#     environment: ${{ parameters.environment }}
+#     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - checkout: self
+#             clean: false
+#             fetchDepth: 5
+#             lfs: true
+#             path: ${{ parameters.name }}
+#           - template: ../steps/terraform-install.yaml
+#           - template: ../steps/terragrunt-install.yaml
+#           - task: AzureCLI@1
+#             displayName: 'Run Terragrunt Apply'
+#             inputs:
+#               azureSubscription: ${{ parameters.azureSubscription }}
+#               scriptLocation: inlineScript
+#               inlineScript: |
+#                 export ARM_CLIENT_ID=$servicePrincipalId
+#                 export ARM_CLIENT_SECRET=$servicePrincipalKey
+#                 export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
                 
-                cd $(Agent.BuildDirectory)/${{ parameters.name }}/environments/${{ parameters.environment }}
-                . ../../scripts/setAccessKeys.sh ${{ parameters.environment }}
-                terragrunt apply-all -input=false --terragrunt-non-interactive
-              addSpnToEnvironment: true
-              useGlobalConfig: true
+#                 cd $(Agent.BuildDirectory)/${{ parameters.name }}/environments/${{ parameters.environment }}
+#                 . ../../scripts/setAccessKeys.sh ${{ parameters.environment }}
+#                 terragrunt apply-all -input=false --terragrunt-non-interactive
+#               addSpnToEnvironment: true
+#               useGlobalConfig: true
