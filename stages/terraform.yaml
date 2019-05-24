@@ -55,6 +55,9 @@ stages:
               fetchDepth: 5
               lfs: true
               path: ${{ location }}
+            # Should be like this... but just fails.
+            # - template: ../steps/terraform-install.yaml
+            # - template: ../steps/terragrunt-install.yaml
             - script: |
                 curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
                 sudo unzip -o "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin
