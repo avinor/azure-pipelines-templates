@@ -51,8 +51,8 @@ stages:
             fetchDepth: 5
             lfs: true
             path: ${{ parameters.name }}
-          - template: ../steps/terraform-install.yaml@templates
-          - template: ../steps/terragrunt-install.yaml@templates
+          - template: ../steps/terraform-install.yaml
+          - template: ../steps/terragrunt-install.yaml
           - task: AzureCLI@1
             displayName: 'Run Terragrunt Apply'
             inputs:
