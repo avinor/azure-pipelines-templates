@@ -1,11 +1,11 @@
 # Validates module templates
 
 jobs:
-- job: Validate
+- job: Validate examples
   pool:
     vmImage: "ubuntu 16.04"
   steps:
-  - template: steps/terraform-install.yaml
+  - template: ../steps/terraform-install.yaml
   - script: |
       for EXAMPLE in examples/*
       do

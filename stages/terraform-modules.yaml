@@ -1,0 +1,6 @@
+# Template to validate terraform modules using the example folders
+
+stages:
+- stage: Validate
+  jobs:
+  - template: ../jobs/terraform-validate-examples.yaml
