@@ -53,7 +53,7 @@ stages:
           addSpnToEnvironment: true
           useGlobalConfig: true
         env:
-          ARM_SAS_TOKEN: $(sasToken)
+          ARM_SAS_TOKEN: ${{ parameters.sasToken }}
 - stage: Apply
   jobs:
   - ${{ each path in parameters.paths }}:
