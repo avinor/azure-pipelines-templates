@@ -1,8 +1,6 @@
 # Plan and apply terraform resources
 # Currently uses terragrunt for deployment, will probably change later
 #
-# 
-#
 # Azure Hosted Agent did not have terraform 0.12 at the time of creation and therefore
 # installing terraform 0.12
 #
@@ -43,7 +41,6 @@ stages:
           azureSubscription: ${{ parameters.azureSubscription }}
           scriptLocation: inlineScript
           inlineScript: |
-            env
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
@@ -103,3 +100,5 @@ stages:
                   terragrunt apply-all -input=false --terragrunt-non-interactive
                 addSpnToEnvironment: true
                 useGlobalConfig: true
+              env:
+                ARM_SAS_TOKEN: ${{ parameters.sasToken }}
