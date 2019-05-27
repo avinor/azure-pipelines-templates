@@ -13,6 +13,7 @@ parameters:
   azureSubscription: ''
   environment: ''
   paths: []
+  sasToken: ''
   terragruntVersion: 'v0.18.4'
   terraformVersion: '0.12.0'
 
@@ -51,7 +52,7 @@ stages:
           addSpnToEnvironment: true
           useGlobalConfig: true
         env:
-          ARM_SAS_TOKEN: $(SAS_TOKEN)
+          ARM_SAS_TOKEN: $(sasToken)
 - stage: Apply
   jobs:
   - ${{ each path in parameters.paths }}:
