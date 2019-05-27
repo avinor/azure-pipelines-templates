@@ -42,7 +42,6 @@ stages:
           azureSubscription: ${{ parameters.azureSubscription }}
           scriptLocation: inlineScript
           inlineScript: |
-            env
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
@@ -51,6 +50,8 @@ stages:
             terragrunt plan-all -input=false
           addSpnToEnvironment: true
           useGlobalConfig: true
+        env:
+          ARM_SAS_TOKEN: $(SAS_TOKEN)
 - stage: Apply
   jobs:
   - ${{ each path in parameters.paths }}:
