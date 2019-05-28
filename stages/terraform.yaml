@@ -92,6 +92,7 @@ stages:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptLocation: inlineScript
                 inlineScript: |
+                  env
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
                   export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
