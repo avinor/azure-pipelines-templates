@@ -4,6 +4,11 @@
 # Azure Hosted Agent did not have terraform 0.12 at the time of creation and therefore
 # installing terraform 0.12
 #
+# Azure release pipeline does not support manual intervention at this time. This is
+# recommended way to deploy terraform to allow inspection of plans. To work around this
+# the apply stage only runs on master. So make changes in branches and inspect them
+# before merging to master
+#
 # Nb. Due to a bug it could not use the install terragrunt and terraform step templates
 #     and had to include those in deployment steps directly. Maybe will be fixed later
 
@@ -41,6 +46,7 @@ stages:
           azureSubscription: ${{ parameters.azureSubscription }}
           scriptLocation: inlineScript
           inlineScript: |
+            export ARM_SAS_TOKEN="${{ parameters.sasToken }}"
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
@@ -49,8 +55,6 @@ stages:
             terragrunt plan-all -input=false
           addSpnToEnvironment: true
           useGlobalConfig: true
-        env:
-          ARM_SAS_TOKEN: ${{ parameters.sasToken }}
 - stage: Apply
   jobs:
   - ${{ each path in parameters.paths }}:
@@ -88,13 +92,11 @@ stages:
               displayName: Install terragrunt
             - task: AzureCLI@1
               displayName: 'Run Terragrunt Apply'
-              env:
-                ARM_SAS_TOKEN: ${{ parameters.sasToken }}
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptLocation: inlineScript
                 inlineScript: |
-                  env
+                  export ARM_SAS_TOKEN="${{ parameters.sasToken }}"
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
                   export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
