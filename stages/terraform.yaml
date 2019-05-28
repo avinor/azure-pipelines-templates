@@ -88,6 +88,8 @@ stages:
               displayName: Install terragrunt
             - task: AzureCLI@1
               displayName: 'Run Terragrunt Apply'
+              env:
+                ARM_SAS_TOKEN: ${{ parameters.sasToken }}
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptLocation: inlineScript
@@ -101,5 +103,3 @@ stages:
                   terragrunt apply-all -input=false --terragrunt-non-interactive
                 addSpnToEnvironment: true
                 useGlobalConfig: true
-              env:
-                ARM_SAS_TOKEN: ${{ parameters.sasToken }}
