@@ -1,5 +1,5 @@
 # Plan and apply terraform resources
-# Currently uses terragrunt for deployment, will probably change later
+# Uses tau for deployment
 #
 # Azure Hosted Agent did not have terraform 0.12 at the time of creation and therefore
 # installing terraform 0.12
@@ -9,16 +9,15 @@
 # the apply stage only runs on master. So make changes in branches and inspect them
 # before merging to master
 #
-# Nb. Due to a bug it could not use the install terragrunt and terraform step templates
+# Nb. Due to a bug it could not use the install tau and terraform step templates
 #     and had to include those in deployment steps directly. Maybe will be fixed later
 
 parameters:
   azureSubscription: ''
   environment: ''
   paths: []
-  sasToken: ''
   terragruntVersion: 'v0.18.4'
-  terraformVersion: '0.12.0'
+  tauVersion: 'v0.1.0-alpha.1'
 
 stages:
 - stage: Plan
@@ -37,22 +36,33 @@ stages:
       - template: ../steps/terraform-install.yaml
         parameters:
           terraformVersion: ${{ parameters.terraformVersion }}
-      - template: ../steps/terragrunt-install.yaml
-        parameters:
-          terragruntVersion: ${{ parameters.terragruntVersion }}
+      - template: ../steps/tau-install.yaml
       - task: AzureCLI@1
-        displayName: 'Run Terragrunt Plan'
+        displayName: 'Run Tau Init'
         inputs:
           azureSubscription: ${{ parameters.azureSubscription }}
           scriptLocation: inlineScript
           inlineScript: |
-            export ARM_SAS_TOKEN="${{ parameters.sasToken }}"
             export ARM_CLIENT_ID=$servicePrincipalId
             export ARM_CLIENT_SECRET=$servicePrincipalKey
             export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
             
             cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
-            terragrunt plan-all -input=false
+            tau init
+          addSpnToEnvironment: true
+          useGlobalConfig: true
+      - task: AzureCLI@1
+        displayName: 'Run Tau Plan'
+        inputs:
+          azureSubscription: ${{ parameters.azureSubscription }}
+          scriptLocation: inlineScript
+          inlineScript: |
+            export ARM_CLIENT_ID=$servicePrincipalId
+            export ARM_CLIENT_SECRET=$servicePrincipalKey
+            export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
+            
+            cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
+            tau plan
           addSpnToEnvironment: true
           useGlobalConfig: true
 - stage: Apply
@@ -75,7 +85,7 @@ stages:
               path: ${{ path.name }}
             # Should be like this... but just fails.
             # - template: ../steps/terraform-install.yaml
-            # - template: ../steps/terragrunt-install.yaml
+            # - template: ../steps/tau-install.yaml
             - script: |
                 curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
                 sudo unzip -o "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin
@@ -84,24 +94,23 @@ stages:
                 TERRAFORM_VERSION: ${{ parameters.terraformVersion }}
               displayName: Install terraform
             - script: |
-                curl -L https://github.com/gruntwork-io/terragrunt/releases/download/${TERRAGRUNT_VERSION}/terragrunt_linux_amd64 --output terragrunt
-                chmod +x terragrunt
-                sudo mv terragrunt /usr/local/bin
+                curl -L https://github.com/avinor/tau/releases/download/${TAU_VERSION}/tau-${TAU_VERSION}-linux-amd64 --output tau
+                chmod +x tau
+                sudo mv tau /usr/local/bin
               env:
-                TERRAGRUNT_VERSION: ${{ parameters.terragruntVersion }}
-              displayName: Install terragrunt
+                TAU_VERSION: ${{ parameters.tauVersion }}
+              displayName: Install tau
             - task: AzureCLI@1
-              displayName: 'Run Terragrunt Apply'
+              displayName: 'Run Tau Apply'
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
                 scriptLocation: inlineScript
                 inlineScript: |
-                  export ARM_SAS_TOKEN="${{ parameters.sasToken }}"
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
                   export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
                   
                   cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
-                  terragrunt apply-all -input=false --terragrunt-non-interactive
+                  tau apply
                 addSpnToEnvironment: true
                 useGlobalConfig: true

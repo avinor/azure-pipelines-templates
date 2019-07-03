@@ -1,0 +1,11 @@
+parameters:
+  tauVersion: 'v0.1.0-alpha.1'
+
+steps:
+- script: |
+    curl -L https://github.com/avinor/tau/releases/download/${TAU_VERSION}/tau-${TAU_VERSION}-linux-amd64 --output tau
+    chmod +x tau
+    sudo mv tau /usr/local/bin
+  env:
+    TAU_VERSION: ${{ parameters.tauVersion }}
+  displayName: Install tau
