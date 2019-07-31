@@ -101,6 +101,20 @@ stages:
                 TAU_VERSION: ${{ parameters.tauVersion }}
               displayName: Install tau
             - task: AzureCLI@1
+              displayName: 'Run Tau Init'
+              inputs:
+                azureSubscription: ${{ parameters.azureSubscription }}
+                scriptLocation: inlineScript
+                inlineScript: |
+                  export ARM_CLIENT_ID=$servicePrincipalId
+                  export ARM_CLIENT_SECRET=$servicePrincipalKey
+                  export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
+                  
+                  cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
+                  tau init
+                addSpnToEnvironment: true
+                useGlobalConfig: true
+            - task: AzureCLI@1
               displayName: 'Run Tau Apply'
               inputs:
                 azureSubscription: ${{ parameters.azureSubscription }}
@@ -111,6 +125,6 @@ stages:
                   export ARM_TENANT_ID=$(az account show | jq -r .tenantId)
                   
                   cd $(Agent.BuildDirectory)/${{ path.name }}/${{ path.path }}
-                  tau apply
+                  tau apply --auto-approve
                 addSpnToEnvironment: true
                 useGlobalConfig: true
