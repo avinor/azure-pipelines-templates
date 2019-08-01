@@ -17,7 +17,7 @@ parameters:
   environment: ''
   paths: []
   terragruntVersion: 'v0.18.4'
-  tauVersion: 'v0.1.0-alpha.1'
+  tauVersion: 'v0.1.0-alpha.2'
 
 stages:
 - stage: Plan
