@@ -73,7 +73,6 @@ stages:
       pool:
         vmImage: 'ubuntu-16.04'
       environment: ${{ parameters.environment }}
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
       strategy:
         runOnce:
           deploy:
