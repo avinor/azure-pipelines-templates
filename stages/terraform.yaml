@@ -16,7 +16,7 @@ parameters:
   azureSubscription: ''
   environment: ''
   paths: []
-  terragruntVersion: 'v0.18.4'
+  terraformVersion: '0.12.6'
   tauVersion: 'v0.1.0-alpha.2'
 
 stages:
